@@ -1,0 +1,584 @@
+local Players = game:GetService('Players')
+local RunService = game:GetService('RunService')
+local UserInputService = game:GetService('UserInputService')
+local TweenService = game:GetService('TweenService')
+local Lighting = game:GetService('Lighting')
+local LocalPlayer = Players.LocalPlayer
+
+local MainGui = Instance.new('ScreenGui', game.CoreGui)
+MainGui.Name = '175PingPong'
+
+local MainFrame = Instance.new('Frame', MainGui)
+MainFrame.Size = UDim2.new(0, 180, 0, 175)
+MainFrame.Position = UDim2.new(0.5, -90, 0.5, -87)
+MainFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.BorderSizePixel = 0
+
+local MainCorner = Instance.new('UICorner', MainFrame)
+MainCorner.CornerRadius = UDim.new(0, 12)
+
+local BgGrad = Instance.new('UIGradient', MainFrame)
+BgGrad.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(65, 15, 15)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(140, 35, 35))
+}
+
+local MainStroke = Instance.new('UIStroke', MainFrame)
+MainStroke.Thickness = 2
+
+local StrokeGrad = Instance.new('UIGradient', MainStroke)
+StrokeGrad.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 50, 50)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 150, 150))
+}
+
+local dragging, dragInput, dragStart, startPos
+
+MainFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = MainFrame.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then dragging = false end
+        end)
+    end
+end)
+
+MainFrame.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        local delta = input.Position - dragStart
+        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+local TitleBar = Instance.new('Frame', MainFrame)
+TitleBar.Size = UDim2.new(1, 0, 0, 26)
+TitleBar.BackgroundTransparency = 1
+
+local Avatar = Instance.new('ImageLabel', TitleBar)
+Avatar.Size = UDim2.new(0, 18, 0, 18)
+Avatar.Position = UDim2.new(0, 6, 0.5, -9)
+Avatar.BackgroundTransparency = 1
+Avatar.Image = 'rbxthumb://type=AvatarHeadShot&id=' .. LocalPlayer.UserId .. '&w=420&h=420'
+
+local AvatarCorner = Instance.new('UICorner', Avatar)
+AvatarCorner.CornerRadius = UDim.new(1, 0)
+
+local AvatarStroke = Instance.new('UIStroke', Avatar)
+AvatarStroke.Thickness = 1.5
+AvatarStroke.Color = Color3.fromRGB(255, 75, 75)
+
+local Title = Instance.new('TextLabel', TitleBar)
+Title.Size = UDim2.new(1, -50, 1, 0)
+Title.Position = UDim2.new(0, 28, 0, 0)
+Title.BackgroundTransparency = 1
+Title.Text = 'Ping Pong 175'
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 11
+Title.TextXAlignment = Enum.TextXAlignment.Left
+
+local TitleGrad = Instance.new('UIGradient', Title)
+TitleGrad.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 170, 225)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 255, 225))
+}
+
+local MinimizeBtn = Instance.new('TextButton', TitleBar)
+MinimizeBtn.Size = UDim2.new(0, 20, 1, 0)
+MinimizeBtn.Position = UDim2.new(1, -22, 0, 0)
+MinimizeBtn.Text = '-'
+MinimizeBtn.BackgroundTransparency = 1
+MinimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+MinimizeBtn.Font = Enum.Font.GothamBold
+MinimizeBtn.TextSize = 16
+
+local Content = Instance.new('Frame', MainFrame)
+Content.Size = UDim2.new(1, 0, 1, -26)
+Content.Position = UDim2.new(0, 0, 0, 26)
+Content.BackgroundTransparency = 1
+
+local function createToggle(labelText, yPos)
+    local row = Instance.new('Frame', Content)
+    row.Size = UDim2.new(1, -10, 0, 26)
+    row.Position = UDim2.new(0, 5, 0, yPos)
+    row.BackgroundTransparency = 1
+    
+    local label = Instance.new('TextLabel', row)
+    label.Size = UDim2.new(0.6, 0, 1, 0)
+    label.Text = labelText
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.Gotham
+    label.TextSize = 11
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    
+    local toggle = Instance.new('Frame', row)
+    toggle.Size = UDim2.new(0, 34, 0, 18)
+    toggle.Position = UDim2.new(1, -38, 0.5, -9)
+    toggle.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    toggle.BorderSizePixel = 0
+    
+    local toggleCorner = Instance.new('UICorner', toggle)
+    toggleCorner.CornerRadius = UDim.new(1, 0)
+    
+    local knob = Instance.new('Frame', toggle)
+    knob.Size = UDim2.new(0, 14, 0, 14)
+    knob.Position = UDim2.new(0, 2, 0.5, -7)
+    knob.BackgroundColor3 = Color3.fromRGB(200, 55, 55)
+    knob.BorderSizePixel = 0
+    
+    local knobCorner = Instance.new('UICorner', knob)
+    knobCorner.CornerRadius = UDim.new(1, 0)
+    
+    local btn = Instance.new('TextButton', toggle)
+    btn.Size = UDim2.new(1, 0, 1, 0)
+    btn.BackgroundTransparency = 1
+    btn.Text = ''
+    
+    local state = false
+    
+    local function update()
+        if state then
+            toggle.BackgroundColor3 = Color3.fromRGB(65, 15, 15)
+            knob:TweenPosition(UDim2.new(1, -16, 0.5, -7), 'Out', 'Quad', 0.15, true)
+            knob.BackgroundColor3 = Color3.fromRGB(255, 115, 115)
+        else
+            toggle.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+            knob:TweenPosition(UDim2.new(0, 2, 0.5, -7), 'Out', 'Quad', 0.15, true)
+            knob.BackgroundColor3 = Color3.fromRGB(200, 55, 55)
+        end
+    end
+    
+    return {
+        row = row,
+        toggle = toggle,
+        knob = knob,
+        btn = btn,
+        get = function() return state end,
+        set = function(v) state = v update() end,
+        toggleState = function() state = not state update() return state end
+    }
+end
+
+local anchorToggle = createToggle('Anchor', 3)
+local buyToggle = createToggle('Auto Buy', 32)
+local sellToggle = createToggle('Auto Sell', 61)
+local antiLagToggle = createToggle('Anti Lag', 90)
+
+local DiscordBtn = Instance.new('TextButton', Content)
+DiscordBtn.Size = UDim2.new(1, -10, 0, 22)
+DiscordBtn.Position = UDim2.new(0, 5, 0, 120)
+DiscordBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+DiscordBtn.TextColor3 = Color3.fromRGB(65, 15, 15)
+DiscordBtn.Font = Enum.Font.GothamBold
+DiscordBtn.TextSize = 11
+DiscordBtn.Text = 'Discord'
+DiscordBtn.BorderSizePixel = 0
+
+local DiscordCorner = Instance.new('UICorner', DiscordBtn)
+DiscordCorner.CornerRadius = UDim.new(0, 6)
+
+local DiscordStroke = Instance.new('UIStroke', DiscordBtn)
+DiscordStroke.Thickness = 1.5
+
+local DiscordGrad = Instance.new('UIGradient', DiscordStroke)
+DiscordGrad.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 50, 50)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 150, 150))
+}
+
+local sellPending = false
+
+local function showSellWarning()
+    local warningGui = Instance.new('ScreenGui', game.CoreGui)
+    warningGui.Name = 'SellWarning'
+    warningGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    warningGui.DisplayOrder = 999
+    
+    local bg = Instance.new('Frame', warningGui)
+    bg.Size = UDim2.new(0, 280, 0, 160)
+    bg.Position = UDim2.new(0.5, -140, 0.5, -80)
+    bg.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    bg.BorderSizePixel = 0
+    
+    local bgCorner = Instance.new('UICorner', bg)
+    bgCorner.CornerRadius = UDim.new(0, 12)
+    
+    local bgGrad = Instance.new('UIGradient', bg)
+    bgGrad.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(65, 15, 15)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(140, 35, 35))
+    }
+    
+    local bgStroke = Instance.new('UIStroke', bg)
+    bgStroke.Thickness = 2
+    
+    local bgStrokeGrad = Instance.new('UIGradient', bgStroke)
+    bgStrokeGrad.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 50, 50)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 150, 150))
+    }
+    
+    local title = Instance.new('TextLabel', bg)
+    title.Size = UDim2.new(1, 0, 0, 26)
+    title.Position = UDim2.new(0, 0, 0, 6)
+    title.BackgroundTransparency = 1
+    title.Text = 'WARNING / ADVERTENCIA'
+    title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    title.Font = Enum.Font.GothamBold
+    title.TextSize = 13
+    title.TextXAlignment = Enum.TextXAlignment.Center
+    
+    local msg = Instance.new('TextLabel', bg)
+    msg.Size = UDim2.new(1, -30, 0, 55)
+    msg.Position = UDim2.new(0, 15, 0, 42)
+    msg.BackgroundTransparency = 1
+    msg.Text = 'By activating this option, all your brainrots will be sold.\n\nAl activar esta opcion, se venderan todos tus brainrots.'
+    msg.TextColor3 = Color3.fromRGB(255, 255, 255)
+    msg.Font = Enum.Font.Gotham
+    msg.TextSize = 11
+    msg.TextXAlignment = Enum.TextXAlignment.Center
+    msg.TextYAlignment = Enum.TextYAlignment.Center
+    msg.TextWrapped = true
+    
+    local btnFrame = Instance.new('Frame', bg)
+    btnFrame.Size = UDim2.new(1, -40, 0, 28)
+    btnFrame.Position = UDim2.new(0, 20, 0, 110)
+    btnFrame.BackgroundTransparency = 1
+    
+    local okBtn = Instance.new('TextButton', btnFrame)
+    okBtn.Size = UDim2.new(0, 80, 0, 28)
+    okBtn.Position = UDim2.new(0.5, -90, 0, 0)
+    okBtn.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    okBtn.Text = 'OK'
+    okBtn.TextColor3 = Color3.fromRGB(65, 15, 15)
+    okBtn.Font = Enum.Font.GothamBold
+    okBtn.TextSize = 12
+    okBtn.BorderSizePixel = 0
+    
+    local okCorner = Instance.new('UICorner', okBtn)
+    okCorner.CornerRadius = UDim.new(0, 6)
+    
+    local okStroke = Instance.new('UIStroke', okBtn)
+    okStroke.Thickness = 1.5
+    
+    local okGrad = Instance.new('UIGradient', okStroke)
+    okGrad.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 50, 50)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 150, 150))
+    }
+    
+    local cancelBtn = Instance.new('TextButton', btnFrame)
+    cancelBtn.Size = UDim2.new(0, 80, 0, 28)
+    cancelBtn.Position = UDim2.new(0.5, 10, 0, 0)
+    cancelBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    cancelBtn.Text = 'Cancel'
+    cancelBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    cancelBtn.Font = Enum.Font.GothamBold
+    cancelBtn.TextSize = 12
+    cancelBtn.BorderSizePixel = 0
+    
+    local cancelCorner = Instance.new('UICorner', cancelBtn)
+    cancelCorner.CornerRadius = UDim.new(0, 6)
+    
+    local cancelStroke = Instance.new('UIStroke', cancelBtn)
+    cancelStroke.Thickness = 1.5
+    cancelStroke.Color = Color3.fromRGB(100, 30, 30)
+    
+    okBtn.MouseButton1Click:Connect(function()
+        warningGui:Destroy()
+        sellToggle.set(true)
+        sellPending = false
+    end)
+    
+    cancelBtn.MouseButton1Click:Connect(function()
+        warningGui:Destroy()
+        sellPending = false
+    end)
+end
+
+anchorToggle.btn.MouseButton1Click:Connect(function()
+    local state = anchorToggle.toggleState()
+    if not state then
+        local char = LocalPlayer.Character
+        if char then
+            local root = char:FindFirstChild('HumanoidRootPart')
+            if root then
+                root.Anchored = false
+            end
+        end
+    end
+end)
+
+buyToggle.btn.MouseButton1Click:Connect(function()
+    buyToggle.toggleState()
+end)
+
+sellToggle.btn.MouseButton1Click:Connect(function()
+    if sellToggle.get() then
+        sellToggle.set(false)
+    else
+        if not sellPending then
+            sellPending = true
+            showSellWarning()
+        end
+    end
+end)
+
+local antiLagActive = false
+
+local function applyAntiLag()
+    Lighting.GlobalShadows = false
+    Lighting.Brightness = 1
+    
+    for _, v in pairs(Lighting:GetChildren()) do
+        if v:IsA('BloomEffect') or v:IsA('BlurEffect') or v:IsA('SunRaysEffect') or v:IsA('ColorCorrectionEffect') or v:IsA('DepthOfFieldEffect') then
+            v.Enabled = false
+        end
+    end
+    
+    for _, v in pairs(workspace:GetDescendants()) do
+        if v:IsA('BasePart') then
+            v.Material = Enum.Material.Plastic
+            v.CastShadow = false
+            if v:FindFirstChild('PointLight') then
+                v.PointLight:Destroy()
+            end
+            if v:FindFirstChild('SurfaceLight') then
+                v.SurfaceLight:Destroy()
+            end
+        elseif v:IsA('ParticleEmitter') then
+            v.Enabled = false
+        elseif v:IsA('Decal') then
+            v.Transparency = 1
+        elseif v:IsA('Fire') or v:IsA('Smoke') or v:IsA('Sparkles') then
+            v.Enabled = false
+        elseif v:IsA('Sound') then
+            v.Volume = 0
+        end
+    end
+end
+
+local function revertAntiLag()
+    Lighting.GlobalShadows = true
+    Lighting.Brightness = 2
+end
+
+workspace.DescendantAdded:Connect(function(v)
+    if antiLagActive then
+        if v:IsA('BasePart') then
+            v.Material = Enum.Material.Plastic
+            v.CastShadow = false
+            if v:FindFirstChild('PointLight') then
+                v.PointLight:Destroy()
+            end
+            if v:FindFirstChild('SurfaceLight') then
+                v.SurfaceLight:Destroy()
+            end
+        elseif v:IsA('ParticleEmitter') then
+            v.Enabled = false
+        elseif v:IsA('Decal') then
+            v.Transparency = 1
+        elseif v:IsA('Fire') or v:IsA('Smoke') or v:IsA('Sparkles') then
+            v.Enabled = false
+        elseif v:IsA('Sound') then
+            v.Volume = 0
+        end
+    end
+end)
+
+antiLagToggle.btn.MouseButton1Click:Connect(function()
+    antiLagActive = not antiLagActive
+    antiLagToggle.toggleState()
+    if antiLagActive then
+        applyAntiLag()
+    else
+        revertAntiLag()
+    end
+end)
+
+local gradients = {BgGrad, StrokeGrad, TitleGrad, DiscordGrad}
+
+RunService.RenderStepped:Connect(function()
+    local rot = (tick() * 90) % 360
+    for _, g in ipairs(gradients) do
+        if g then g.Rotation = rot end
+    end
+end)
+
+RunService.Heartbeat:Connect(function()
+    if anchorToggle.get() then
+        local char = LocalPlayer.Character
+        if char then
+            local root = char:FindFirstChild('HumanoidRootPart')
+            if root then
+                root.Anchored = true
+            end
+        end
+    end
+end)
+
+LocalPlayer.CharacterAdded:Connect(function(char)
+    task.wait(0.5)
+    if anchorToggle.get() then
+        local root = char:FindFirstChild('HumanoidRootPart')
+        if root then
+            root.Anchored = true
+        end
+    end
+end)
+
+local sellCooldown = 0
+local buyCooldown = 0
+
+RunService.Heartbeat:Connect(function()
+    if sellToggle.get() then
+        local now = tick()
+        if now - sellCooldown < 0.3 then return end
+        sellCooldown = now
+        
+        local plots = workspace:FindFirstChild('Plots')
+        if plots then
+            for _, plot in ipairs(plots:GetChildren()) do
+                local descendants = plot:GetDescendants()
+                for _, descendant in ipairs(descendants) do
+                    if descendant:IsA('ProximityPrompt') then
+                        if descendant.Enabled and descendant.ActionText then
+                            local text = string.lower(descendant.ActionText)
+                            if string.find(text, 'sell') then
+                                task.spawn(function()
+                                    fireproximityprompt(descendant, 10000)
+                                end)
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+end)
+
+local function activatePrompt(prompt)
+    if not prompt or not prompt.Enabled then return end
+    pcall(function()
+        prompt.HoldDuration = 0
+        prompt:InputHoldBegin()
+        task.wait(0.05)
+        prompt:InputHoldEnd()
+    end)
+end
+
+RunService.Stepped:Connect(function()
+    if buyToggle.get() then
+        local now = tick()
+        if now - buyCooldown < 0.3 then return end
+        buyCooldown = now
+        
+        for _, prompt in pairs(workspace:GetDescendants()) do
+            if prompt:IsA('ProximityPrompt') and prompt.Enabled and prompt.ActionText then
+                local text = string.lower(prompt.ActionText)
+                if string.find(text, 'purchase') or string.find(text, 'buy') or string.find(text, 'comprar') or string.find(text, 'shop') then
+                    activatePrompt(prompt)
+                end
+            end
+        end
+        
+        local playerGui = LocalPlayer:FindFirstChild('PlayerGui')
+        if playerGui then
+            for _, gui in ipairs(playerGui:GetChildren()) do
+                if gui:IsA('ScreenGui') then
+                    for _, descendant in ipairs(gui:GetDescendants()) do
+                        if (descendant:IsA('TextButton') or descendant:IsA('ImageButton')) and descendant.Visible and descendant.Active then
+                            local text = string.lower(descendant.Text or descendant.Name or '')
+                            if string.find(text, 'purchase') or string.find(text, 'buy') or string.find(text, 'comprar') or string.find(text, 'shop') then
+                                pcall(function()
+                                    descendant:Click()
+                                    if descendant.MouseButton1Click then
+                                        descendant.MouseButton1Click:Fire()
+                                    end
+                                end)
+                            end
+                        end
+                    end
+                end
+            end
+        end
+        
+        local coreGui = game:GetService('CoreGui')
+        if coreGui then
+            for _, gui in ipairs(coreGui:GetChildren()) do
+                if gui:IsA('ScreenGui') then
+                    for _, descendant in ipairs(gui:GetDescendants()) do
+                        if (descendant:IsA('TextButton') or descendant:IsA('ImageButton')) and descendant.Visible and descendant.Active then
+                            local text = string.lower(descendant.Text or descendant.Name or '')
+                            if string.find(text, 'purchase') or string.find(text, 'buy') or string.find(text, 'comprar') or string.find(text, 'shop') then
+                                pcall(function()
+                                    descendant:Click()
+                                    if descendant.MouseButton1Click then
+                                        descendant.MouseButton1Click:Fire()
+                                    end
+                                end)
+                            end
+                        end
+                    end
+                end
+            end
+        end
+        
+        local starterGui = game:GetService('StarterGui')
+        if starterGui then
+            for _, gui in ipairs(starterGui:GetChildren()) do
+                if gui:IsA('ScreenGui') then
+                    for _, descendant in ipairs(gui:GetDescendants()) do
+                        if (descendant:IsA('TextButton') or descendant:IsA('ImageButton')) and descendant.Visible and descendant.Active then
+                            local text = string.lower(descendant.Text or descendant.Name or '')
+                            if string.find(text, 'purchase') or string.find(text, 'buy') or string.find(text, 'comprar') or string.find(text, 'shop') then
+                                pcall(function()
+                                    descendant:Click()
+                                    if descendant.MouseButton1Click then
+                                        descendant.MouseButton1Click:Fire()
+                                    end
+                                end)
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
+end)
+
+local minimized = false
+
+MinimizeBtn.MouseButton1Click:Connect(function()
+    minimized = not minimized
+    if minimized then
+        Content.Visible = false
+        local tween = TweenInfo.new(0.25)
+        local size = UDim2.new(0, 180, 0, 26)
+        local anim = TweenService:Create(MainFrame, tween, {Size = size})
+        anim:Play()
+        MinimizeBtn.Text = '+'
+    else
+        Content.Visible = true
+        local tween = TweenInfo.new(0.25)
+        local size = UDim2.new(0, 180, 0, 175)
+        local anim = TweenService:Create(MainFrame, tween, {Size = size})
+        anim:Play()
+        MinimizeBtn.Text = '-'
+    end
+end)
+
+DiscordBtn.MouseButton1Click:Connect(function()
+    setclipboard('https://discord.gg/2SvFs7YRF')
+end)
